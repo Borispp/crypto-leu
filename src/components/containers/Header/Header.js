@@ -107,7 +107,7 @@ class Header extends React.PureComponent {
             </span>
           </NavLink>
 
-          <div className={classNames("app-header__menu", { isOpen: menuOpen } )}>
+          <div className={classNames("app-header__menu" )}>
             <NavLink to={routes.concept} className="app-header__menu-item" exact activeClassName="active">Concept</NavLink>
             <NavLink to={routes.systemParams} className="app-header__menu-item" exact activeClassName="active">Parametrii Sistemului</NavLink>
             <NavLink to={routes.howtouse} className="app-header__menu-item" exact activeClassName="active">Cum pot folosi?</NavLink>
@@ -128,6 +128,15 @@ class Header extends React.PureComponent {
           <div className="app-header__menu-button" onClick={() => this.setState(state => ({ menuOpen: !state.menuOpen }))}>
             <MenuIcon />
           </div>
+        </div>
+
+        <div className={classNames("app-header__menu-mobile", { isOpen: menuOpen } )}>
+          <NavLink to={routes.concept} className="app-header__menu-item" exact activeClassName="active">Concept</NavLink>
+          <NavLink to={routes.systemParams} className="app-header__menu-item" exact activeClassName="active">Parametrii Sistemului</NavLink>
+          <NavLink to={routes.howtouse} className="app-header__menu-item" exact activeClassName="active">Cum pot folosi?</NavLink>
+          <NavLink to={routes.circulation} className="app-header__menu-item" exact activeClassName="active">Circulatia</NavLink>
+
+          <CrossIcon onClick={() => this.setState({ menuOpen: false })} className="app-header__menu-close"  />
         </div>
 
         {children}

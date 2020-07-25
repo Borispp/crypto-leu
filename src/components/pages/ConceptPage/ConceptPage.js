@@ -22,13 +22,18 @@ const ConceptPage = () => {
   const conceptItem8 = useRef();
 
   useEffect(() => {
-    setPositions([conceptItem1, conceptItem2, conceptItem3, conceptItem4, conceptItem5, conceptItem6, conceptItem7, conceptItem8].map((concept) => concept.current.getBoundingClientRect().top + window.scrollY - 40));
-    const handleScroll = () => { setScroll(window.scrollY) };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const handleScroll = () => { setScroll(document.getElementById('root').scrollTop) };
+
+    setTimeout(() => {
+      setPositions([conceptItem1, conceptItem2, conceptItem3, conceptItem4, conceptItem5, conceptItem6, conceptItem7, conceptItem8].map((concept) => concept.current.getBoundingClientRect().top + document.getElementById('root').scrollTop - 40));
+      document.getElementById('root').addEventListener("scroll", handleScroll);
+    }, 300);
+    return () => document.getElementById('root').removeEventListener("scroll", handleScroll);
   }, []);
 
-  const scrollToRef = ref => window.scrollTo({ top: ref.current.offsetTop + window.innerHeight - 100, behavior: 'smooth' });
+  const scrollToRef = ref => document.getElementById('root').scrollTo({ top: ref.current.offsetTop + window.innerHeight - 100, behavior: 'smooth' });
+
+  console.log(positions, scroll);
 
   return (
     <div className="app">
