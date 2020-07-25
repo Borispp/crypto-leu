@@ -3,6 +3,7 @@
   background: $grey-light;
   padding: 100px 0 0;
   box-sizing: border-box;
+  position: relative;
 
   @media (max-width: 992px) {
     padding: 60px 0 0;
@@ -70,6 +71,10 @@
       &:hover {
         color: $pink;
       }
+
+      &.active {
+        color: $pink;
+      }
     }
   }
 
@@ -119,8 +124,9 @@
     text-transform: uppercase;
     padding-bottom: 20px;
 
-    span {
+    a {
       color: $pink;
+      text-decoration: none;
     }
   }
 

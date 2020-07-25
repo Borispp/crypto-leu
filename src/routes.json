@@ -1,3 +1,8 @@
 {
-  "index": "/"
+  "index": "/",
+  "concept": "/concept",
+  "terms": "/terms-of-use",
+  "circulation": "/circulation",
+  "howtouse": "/how-to-use",
+  "systemParams": "/system-params"
 }

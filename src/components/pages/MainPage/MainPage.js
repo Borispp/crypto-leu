@@ -91,7 +91,7 @@ class MainPage extends Component {
                 </div>
               </div>
 
-              <div className="app-header__content-image">
+              <div className="app-header__content-image mobile-shadow">
                 <img src={imgMobile} alt="" />
               </div>
             </div>
