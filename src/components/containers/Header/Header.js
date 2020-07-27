@@ -1,7 +1,10 @@
 import React from 'react';
 import classNames from 'classnames';
 import { NavLink } from 'react-router-dom';
+import get from 'lodash/get';
+import moment from 'moment';
 
+import { getSummary } from 'api/requests';
 import routes from 'routes.json';
 
 import { ReactComponent as Logo } from 'assets/icons/logo.svg';
@@ -25,6 +28,7 @@ class Header extends React.PureComponent {
       searchAddress: '',
       loading: false,
       searchData: null,
+      errors: null
     };
   }
 
@@ -51,41 +55,20 @@ class Header extends React.PureComponent {
   onSubmit = async (e) => {
     e.preventDefault();
     if (this.state.searchAddress) {
-      this.setState({ loading: true, searchOpen: true });
+      this.setState({ loading: true, searchOpen: true, errors: null });
 
-      setTimeout(() => {
+      try {
+        const result = await getSummary(this.state.searchAddress);
         this.setState({
-          loading: false,
-          searchData: {
-            cont: '0xC6563c29f364F7E661FE112A02caA987F87B956f',
-            balance: '9,817.23',
-            transactionInProgress: {
-              contract_address: '0x0000...0000',
-              created_at: '16 Apr at 22:22',
-              amount: '10,000.00',
-              burn_fee: '300'
-            },
-            transactionOutProgress: {
-              contract_address: '0x0000...0000',
-              created_at: '16 Apr at 22:22',
-              amount: '213.14',
-              tx_fee: '2.34'
-            },
-            transactionIn: {
-              contract_address: '0x0000...0000',
-              created_at: '16 Apr at 22:22',
-              amount: '10,000.00',
-              burn_fee: '300'
-            },
-            transactionOut: {
-              contract_address: '0x0000...0000',
-              created_at: '16 Apr at 22:22',
-              amount: '213.14',
-              tx_fee: '2.34'
-            },
-          }
+          searchData: get(result, 'data.data'),
+          loading: false
         });
-      }, 2000);
+      } catch (e) {
+        this.setState({
+          errors: e.response.data.errors,
+          loading: false
+        });
+      }
     }
   };
 
@@ -94,7 +77,7 @@ class Header extends React.PureComponent {
   };
 
   render() {
-    const { searchOpen, menuOpen, searchAddress, loading, searchData } = this.state;
+    const { searchOpen, menuOpen, searchAddress, loading, searchData, errors } = this.state;
     const { children, className } = this.props;
 
     return (
@@ -147,18 +130,18 @@ class Header extends React.PureComponent {
           <Wave className="app-header__wave-image app-header__wave-3" />
         </div>
 
-        {searchOpen && (searchData || loading) && <div className='app-header__search-result'>
+        {searchOpen && (searchData || errors || loading) && <div className='app-header__search-result'>
           {loading && <LoadingIcon className="app-header__search-result-loading" />}
-          {!loading && <div>
+          {!loading && searchData && <div>
             <div className="app-header__search-result-top">
               <div className="app-header__search-result-top-item">
                 <div className="app-header__search-result-label">Cont</div>
-                <div className="app-header__search-result-top-value">0xC6563c29f364F7E661FE112A02caA987F87B956f</div>
+                <div className="app-header__search-result-top-value">{get(searchData, 'contract_address')}</div>
               </div>
               <div className="app-header__search-result-top-item">
                 <div className="app-header__search-result-label">Balanta</div>
                 <div className="app-header__search-result-top-value balance">
-                  <span className="app-header__search-result-top-value-balance">9,817.23</span> cMDL
+                  <span className="app-header__search-result-top-value-balance">{get(searchData, 'balance')}</span> cMDL
                 </div>
               </div>
             </div>
@@ -168,160 +151,36 @@ class Header extends React.PureComponent {
               <br/>
 
               <div className="app-header__search-result-transactions-wrapper">
-                <div className="app-header__search-result-transactions in">
-                  <div className="app-header__search-result-transaction-info">
-                    <div className="app-header__search-result-transaction-icon">
-                      <TransactionInProgressIcon />
+                {get(searchData, 'last_transfers').map(({ amount, burn_fee, counterparty_address, created_at, tx_is_confirmed, tx_fee, inbound, tx_hash }) => (
+                  <div className={classNames("app-header__search-result-transactions", [inbound ? 'in' : 'out'])} key={tx_hash}>
+                    <div className="app-header__search-result-transaction-info">
+                      <div className="app-header__search-result-transaction-icon">
+                        {inbound
+                          ? tx_is_confirmed ? <TransactionInIcon /> : <TransactionInProgressIcon />
+                          : tx_is_confirmed ? <TransactionOutIcon /> : <TransactionOutProgressIcon />
+                        }
+                      </div>
+                      <div className="app-header__search-result-transaction-data">
+                        <div><b>{counterparty_address.substring(0, 6)}...{counterparty_address.slice(counterparty_address.length - 4)}</b></div>
+                        <div>{moment(created_at).format('DD MMM YYYY [at] HH:mm')}</div>
+                      </div>
                     </div>
-                    <div className="app-header__search-result-transaction-data">
-                      <div><b>0x0000...0000</b></div>
-                      <div>16 Apr at 22:22</div>
+
+                    <div className="app-header__search-result-transaction-amount">
+                      <div className="app-header__search-result-transaction-value"><b>{amount}</b> cMDL</div>
+                      {inbound
+                        ? <div>Comision: <b>{tx_fee}</b> cMDL</div>
+                        : <div>Ars: <b>{burn_fee}</b> cMDL</div>
+                      }
                     </div>
                   </div>
-
-                  <div className="app-header__search-result-transaction-amount">
-                    <div className="app-header__search-result-transaction-value"><b>+10,000.00</b> cMDL</div>
-                    <div>
-                      Ars: <b>300</b> cMDL
-                    </div>
-                  </div>
-                </div>
-
-                <div className="app-header__search-result-transactions out">
-                  <div className="app-header__search-result-transaction-info">
-                    <div className="app-header__search-result-transaction-icon">
-                      <TransactionOutProgressIcon />
-                    </div>
-                    <div className="app-header__search-result-transaction-data">
-                      <div><b>0x0000...0000</b></div>
-                      <div>16 Apr at 22:22</div>
-                    </div>
-                  </div>
-
-                  <div className="app-header__search-result-transaction-amount">
-                    <div className="app-header__search-result-transaction-value"><b>-213.14</b> cMDL</div>
-                    <div>
-                      Comision: <b>2.34</b> cMDL
-                    </div>
-                  </div>
-                </div>
-
-                <div className="app-header__search-result-transactions in">
-                  <div className="app-header__search-result-transaction-info">
-                    <div className="app-header__search-result-transaction-icon">
-                      <TransactionInIcon />
-                    </div>
-                    <div className="app-header__search-result-transaction-data">
-                      <div><b>0x0000...0000</b></div>
-                      <div>16 Apr at 22:22</div>
-                    </div>
-                  </div>
-
-                  <div className="app-header__search-result-transaction-amount">
-                    <div className="app-header__search-result-transaction-value"><b>+10,000.00</b> cMDL</div>
-                    <div>
-                      Ars: <b>300</b> cMDL
-                    </div>
-                  </div>
-
-                </div>
-
-                <div className="app-header__search-result-transactions out">
-                  <div className="app-header__search-result-transaction-info">
-                    <div className="app-header__search-result-transaction-icon">
-                      <TransactionOutIcon />
-                    </div>
-                    <div className="app-header__search-result-transaction-data">
-                      <div><b>0x0000...0000</b></div>
-                      <div>16 Apr at 22:22</div>
-                    </div>
-                  </div>
-
-                  <div className="app-header__search-result-transaction-amount">
-                    <div className="app-header__search-result-transaction-value"><b>-213.14</b> cMDL</div>
-                    <div>
-                      Comision: <b>2.34</b> cMDL
-                    </div>
-                  </div>
-                </div>
-
-                <div className="app-header__search-result-transactions out">
-                  <div className="app-header__search-result-transaction-info">
-                    <div className="app-header__search-result-transaction-icon">
-                      <TransactionOutIcon />
-                    </div>
-                    <div className="app-header__search-result-transaction-data">
-                      <div><b>0x0000...0000</b></div>
-                      <div>16 Apr at 22:22</div>
-                    </div>
-                  </div>
-
-                  <div className="app-header__search-result-transaction-amount">
-                    <div className="app-header__search-result-transaction-value"><b>-213.14</b> cMDL</div>
-                    <div>
-                      Comision: <b>2.34</b> cMDL
-                    </div>
-                  </div>
-                </div>
-
-                <div className="app-header__search-result-transactions out">
-                  <div className="app-header__search-result-transaction-info">
-                    <div className="app-header__search-result-transaction-icon">
-                      <TransactionOutIcon />
-                    </div>
-                    <div className="app-header__search-result-transaction-data">
-                      <div><b>0x0000...0000</b></div>
-                      <div>16 Apr at 22:22</div>
-                    </div>
-                  </div>
-
-                  <div className="app-header__search-result-transaction-amount">
-                    <div className="app-header__search-result-transaction-value"><b>-213.14</b> cMDL</div>
-                    <div>
-                      Comision: <b>2.34</b> cMDL
-                    </div>
-                  </div>
-                </div>
-
-                <div className="app-header__search-result-transactions out">
-                  <div className="app-header__search-result-transaction-info">
-                    <div className="app-header__search-result-transaction-icon">
-                      <TransactionOutIcon />
-                    </div>
-                    <div className="app-header__search-result-transaction-data">
-                      <div><b>0x0000...0000</b></div>
-                      <div>16 Apr at 22:22</div>
-                    </div>
-                  </div>
-
-                  <div className="app-header__search-result-transaction-amount">
-                    <div className="app-header__search-result-transaction-value"><b>-213.14</b> cMDL</div>
-                    <div>
-                      Comision: <b>2.34</b> cMDL
-                    </div>
-                  </div>
-                </div>
-
-                <div className="app-header__search-result-transactions out">
-                  <div className="app-header__search-result-transaction-info">
-                    <div className="app-header__search-result-transaction-icon">
-                      <TransactionOutIcon />
-                    </div>
-                    <div className="app-header__search-result-transaction-data">
-                      <div><b>0x0000...0000</b></div>
-                      <div>16 Apr at 22:22</div>
-                    </div>
-                  </div>
-
-                  <div className="app-header__search-result-transaction-amount">
-                    <div className="app-header__search-result-transaction-value"><b>-213.14</b> cMDL</div>
-                    <div>
-                      Comision: <b>2.34</b> cMDL
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
+          </div>}
+
+          {!loading && errors && <div className="app-header__search-errors">
+            {errors.map(({ message }, i) => <div key={i}>{message}</div>)}
           </div>}
 
         </div>}

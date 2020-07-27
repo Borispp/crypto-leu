@@ -10,4 +10,4 @@ const headers = { headers: { 'Content-Type': 'application/json' } };
 /**
  * Get sample
  */
-export const getSampleRequest = () => axios.get(api.sample, headers);
+export const getSummary = account_address => axios.get(api.summary, {...headers, params: { account_address }});

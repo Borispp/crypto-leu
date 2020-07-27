@@ -5,7 +5,6 @@ import Header from 'components/containers/Header';
 import Footer from 'components/containers/Footer';
 import Button from 'components/elements/Button';
 
-import { getSampleRequest } from 'api/requests';
 import {ReactComponent as Logo} from "../../../assets/icons/logo.svg";
 import {ReactComponent as AppleLogo} from "../../../assets/icons/apple.svg";
 import {ReactComponent as GPLogo} from "../../../assets/icons/google-play.svg";
@@ -24,15 +23,6 @@ class MainPage extends Component {
     this.state = {
       info: 'personal',
       person: 'sellers',
-    }
-  }
-
-  async componentDidMount() {
-    // Request sample
-    try {
-      await getSampleRequest();
-    } catch (e) {
-      console.log(e);
     }
   }
 
