@@ -8,7 +8,7 @@
     "gh-pages": "^2.2.0",
     "lodash": "^4.17.15",
     "moment": "^2.27.0",
-    "node-sass": "^4.13.0",
+    "node-sass": "^7.0.0",
     "react": "^16.12.0",
     "react-addons-transition-group": "^15.6.2",
     "react-click-outside": "^3.0.1",
